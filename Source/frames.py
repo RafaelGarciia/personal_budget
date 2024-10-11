@@ -46,18 +46,8 @@ class BudGet_screen(Pattern_screen):
             values=[i + 1 for i in range(12)],
             width=3,
         )
+        self.month_combobox.bind('<<ComboboxSelected>>', self.load_treeview)
         self.month_combobox.pack(anchor='nw', expand=False, side='left')
-        filter_icon = tk.PhotoImage(
-            file='Source\\icons\\config.png'
-        ).subsample(4, 4)
-        filter_button = tk.Button(
-            date_frame,
-            image=filter_icon,
-            relief='flat',
-            command=self.load_treeview,
-        )
-        filter_button.image = filter_icon
-        filter_button.pack(anchor='nw', expand=False, padx=5, side='top')
 
         # Modeling the value frame
         tk.Label(value_frame, text='Value').grid(column=1, row=0)
@@ -81,7 +71,10 @@ class BudGet_screen(Pattern_screen):
             file='Source\\icons\\delete.png'
         ).subsample(4, 4)
         delete_button = tk.Button(
-            buttons_frame, image=delete_icon, relief='flat', command=...
+            buttons_frame,
+            image=delete_icon,
+            relief='flat',
+            command=self.delete_release,
         )
         delete_button.image = delete_icon
         delete_button.pack(padx=2, pady=2, side='top')
@@ -123,7 +116,7 @@ class BudGet_screen(Pattern_screen):
 
         self.load_treeview()
 
-    def load_treeview(self):
+    def load_treeview(self, event=None):
         month_filter = self.month_combobox.get()
         # Table control variable
         self.id = None
@@ -150,10 +143,10 @@ class BudGet_screen(Pattern_screen):
                 item[0],
                 item[1],
                 item[3],
-                f'R$ - {utl.to_money( value ).replace('-', ' ')}'
+                f'R$ - {utl.to_money( value ).replace('-', '')}'
                 if value < 0
                 else f'R$   {utl.to_money( value )}',
-                f'R$ - {utl.to_money(balance).replace('-', ' ')}'
+                f'R$ - {utl.to_money(balance).replace('-', '')}'
                 if balance < 0
                 else f'R$   {utl.to_money(balance)}',
             ]
@@ -172,6 +165,7 @@ class BudGet_screen(Pattern_screen):
             self.value_entry,
             self.month_combobox,
         ]:
+            entry:tk.Entry
             return_entries.append(entry.get())
 
         # Request to the database
@@ -201,6 +195,32 @@ class BudGet_screen(Pattern_screen):
         # Reload treeview
         self.load_treeview()
 
+    def delete_release(self):
+
+        # Request to the database
+        connection, cursor = sql.connect()
+
+        if self.id != None:
+            cursor.execute(
+                """
+                DELETE FROM releases
+                WHERE id = '%s';
+            """
+                % self.id
+            )
+
+            # Clear entrys
+            for entry in [self.day_entry, self.desc_entry, self.value_entry]:
+                entry.delete(0, tk.END)
+        else:
+            print('id Nulo')
+
+        connection.commit()
+        connection.close()
+
+        # Reload treeview
+        self.load_treeview()
+
     def select_item_in_treeview(self, event):
 
         # Get the item that is selected
@@ -215,6 +235,7 @@ class BudGet_screen(Pattern_screen):
             self.value_entry,
             self.month_combobox,
         ]:
+            entry: tk.Entry
             entry.delete(0, tk.END)
 
         # Request to the database
