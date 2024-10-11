@@ -81,7 +81,7 @@ class BudGet_screen(Pattern_screen):
             file='Source\\icons\\delete.png'
         ).subsample(4, 4)
         delete_button = tk.Button(
-            buttons_frame, image=delete_icon, relief='flat', command=...
+            buttons_frame, image=delete_icon, relief='flat', command=self.delete_release
         )
         delete_button.image = delete_icon
         delete_button.pack(padx=2, pady=2, side='top')
@@ -200,6 +200,30 @@ class BudGet_screen(Pattern_screen):
 
         # Reload treeview
         self.load_treeview()
+
+    def delete_release(self):
+
+        # Request to the database
+        connection, cursor = sql.connect()
+        
+        if self.id != None:
+            cursor.execute("""
+                DELETE FROM releases
+                WHERE id = '%s';
+            """ % self.id)
+
+            # Clear entrys
+            for entry in [self.day_entry, self.desc_entry, self.value_entry]:
+                entry.delete(0, tk.END)
+        else:
+            print('id Nulo')
+        
+        connection.commit()
+        connection.close()
+
+        # Reload treeview
+        self.load_treeview()
+
 
     def select_item_in_treeview(self, event):
 
