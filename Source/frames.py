@@ -165,6 +165,7 @@ class BudGet_screen(Pattern_screen):
             self.value_entry,
             self.month_combobox,
         ]:
+            entry:tk.Entry
             return_entries.append(entry.get())
 
         # Request to the database
